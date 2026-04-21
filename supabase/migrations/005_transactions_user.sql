@@ -1,0 +1,2 @@
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS user_id   UUID;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS user_name VARCHAR(100);

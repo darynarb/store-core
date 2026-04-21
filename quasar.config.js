@@ -30,9 +30,9 @@ module.exports = configure(function (/* ctx */) {
     pwa: {
       workboxMode: 'generateSW',
       manifest: {
-        name: 'Store Core',
-        short_name: 'Store Core',
-        description: 'Sistema ERP para lojas',
+        name: 'StiloTop',
+        short_name: 'StiloTop',
+        description: 'Sistema ERP mobile para loja de roupas com controle de produtos e estoque.',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',

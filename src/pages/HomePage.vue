@@ -1,67 +1,96 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h5 text-weight-bold q-mb-lg">
-      <q-icon name="home" class="q-mr-sm" />
-      Home
+    <div class="text-h5 text-weight-bold q-mb-xs">
+      <q-icon name="point_of_sale" class="q-mr-sm" />
+      Caixa
     </div>
+    <div class="text-caption text-grey-6 q-mb-xl">Selecione o tipo de operação</div>
 
-    <div class="row q-col-gutter-md q-mb-lg">
+    <div class="row q-col-gutter-lg justify-center">
       <div
-        v-for="stat in quickStats"
-        :key="stat.label"
-        class="col-12 col-sm-6 col-md-4"
+        v-for="op in visibleOperations"
+        :key="op.type"
+        class="col-12 col-sm-6 col-md-5"
       >
-        <q-card flat bordered class="stat-card">
-          <q-card-section class="row items-center no-wrap q-py-md">
-            <div>
-              <div class="text-caption text-grey-7">{{ stat.label }}</div>
-              <div class="text-h5 text-weight-bold" :class="`text-${stat.color}`">
-                {{ stat.value }}
-              </div>
-            </div>
-            <q-space />
-            <q-icon :name="stat.icon" size="2.5rem" :color="stat.color" />
+        <q-card
+          clickable v-ripple flat bordered
+          class="operation-card cursor-pointer"
+          :style="`border: 2px solid ${op.borderColor}`"
+          @click="router.push(op.route)"
+        >
+          <q-card-section class="column items-center q-py-xl">
+            <q-icon :name="op.icon" :color="op.color" size="4rem" class="q-mb-md" />
+            <div class="text-h5 text-weight-bold" :class="`text-${op.color}`">{{ op.label }}</div>
+            <div class="text-caption text-grey-6 q-mt-xs text-center">{{ op.description }}</div>
           </q-card-section>
         </q-card>
       </div>
     </div>
-
-    <div class="text-h6 text-weight-medium q-mb-md">Atividade Recente</div>
-    <q-card flat bordered>
-      <q-list separator>
-        <q-item v-for="item in recentActivity" :key="item.id">
-          <q-item-section avatar>
-            <q-avatar :color="item.color" text-color="white" :icon="item.icon" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>{{ item.title }}</q-item-label>
-            <q-item-label caption>{{ item.time }}</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
-    </q-card>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useProducts } from 'src/composables/useProducts'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuth } from 'src/composables/useAuth'
 
-const { products, fetchProducts } = useProducts()
+const router = useRouter()
+const { role } = useAuth()
 
-const quickStats = ref([
-  { label: 'Total de Produtos', value: '0', icon: 'inventory_2', color: 'primary' },
-  { label: 'Categorias', value: '1', icon: 'category', color: 'teal' },
-  { label: 'Pedidos Hoje', value: '0', icon: 'shopping_cart', color: 'orange' }
-])
+const allOperations = [
+  {
+    type: 'venda',
+    label: 'Venda',
+    description: 'Registrar venda e baixar do estoque',
+    icon: 'shopping_cart',
+    color: 'positive',
+    borderColor: '#21ba45',
+    route: '/venda',
+    roles: ['root', 'owner', 'workforce']
+  },
+  {
+    type: 'troca',
+    label: 'Troca',
+    description: 'Trocar produto por outro do estoque',
+    icon: 'swap_horiz',
+    color: 'primary',
+    borderColor: '#1976d2',
+    route: '/troca',
+    roles: ['root', 'owner', 'workforce']
+  },
+  {
+    type: 'entrada',
+    label: 'Entrada',
+    description: 'Adicionar itens ao estoque',
+    icon: 'add_circle',
+    color: 'teal',
+    borderColor: '#26a69a',
+    route: '/entrada',
+    roles: ['root', 'owner']
+  },
+  {
+    type: 'saida',
+    label: 'Saída',
+    description: 'Registrar saída sem venda',
+    icon: 'remove_circle',
+    color: 'warning',
+    borderColor: '#f2c037',
+    route: '/saida',
+    roles: ['root', 'owner']
+  }
+]
 
-const recentActivity = ref([
-  { id: 1, title: 'Sistema iniciado com sucesso', time: 'Agora mesmo', icon: 'check_circle', color: 'positive' },
-  { id: 2, title: 'Banco de dados conectado', time: 'Agora mesmo', icon: 'storage', color: 'primary' }
-])
-
-onMounted(async () => {
-  await fetchProducts()
-  quickStats.value[0].value = String(products.value.length)
-})
+const visibleOperations = computed(() =>
+  allOperations.filter(op => op.roles.includes(role.value))
+)
 </script>
+
+<style scoped>
+.operation-card {
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.operation-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+</style>
